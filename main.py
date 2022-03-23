@@ -43,9 +43,10 @@ def copy_paste_cells(sheet, source, destination):
 
 
 def add_borders(sheet, rows):
-    request_body = {"requests": [
-        {
-            "updateBorders": {
+    request_body = {
+        "requests": [
+            {
+                "updateBorders": {
                     "range": {
                         "sheetId": 812605565,
                         "startRowIndex": 0,
@@ -58,9 +59,10 @@ def add_borders(sheet, rows):
                     "right": {"style": "SOLID", "width": 1, "color": {"red": 0, "green": 0, "blue": 0}},
                     "left": {"style": "SOLID", "width": 1, "color": {"red": 0, "green": 0, "blue": 0}},
                     "innerHorizontal": {"style": "SOLID", "width": 1, "color": {"red": 0, "green": 0, "blue": 0}},
-                    }
-        }
-    ]}
+                    "innerVertical": {"style": "SOLID", "width": 1, "color": {"red": 0, "green": 0, "blue": 0}}
+                }
+            }
+        ]}
     sheet.batchUpdate(spreadsheetId=SPREADSHEET_ID,
                       body=request_body).execute()
 
@@ -101,8 +103,6 @@ def main():
 
         no_of_rows = no_of_stocks + 1
 
-        # add_borders(sheet, rows=no_rows)
-
         fill_column_data(
             sheet, from_range="Stocks_near_52_week_high!F3:F", to_range="21st Mar!F2")
         fill_column_data(
@@ -139,6 +139,86 @@ def main():
         })
 
         fill_serial_nos(sheet, rows=no_of_rows)
+
+        sheet.values().update(spreadsheetId=SPREADSHEET_ID, range="Batches!C4",
+                              valueInputOption="USER_ENTERED", body={"values": [[no_of_stocks]]}).execute()
+
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
+                                    range="Batches!C5:C").execute()
+        values = result.get('values', [])
+
+        copy_paste_cells(sheet, source={
+            "sheetId": 0,
+            "startRowIndex": 4,
+            "endRowIndex": 5,
+            "startColumnIndex": 0,
+            "endColumnIndex": 1
+        },
+            destination={
+            "sheetId": 812605565,
+            "startRowIndex": 1,
+            "endRowIndex": int(values[0][0]) + 1,
+            "startColumnIndex": 1,
+            "endColumnIndex": 2
+        })
+        copy_paste_cells(sheet, source={
+            "sheetId": 0,
+            "startRowIndex": 5,
+            "endRowIndex": 6,
+            "startColumnIndex": 0,
+            "endColumnIndex": 1
+        },
+            destination={
+            "sheetId": 812605565,
+            "startRowIndex": int(values[0][0]) + 1,
+            "endRowIndex": int(values[1][0]) + 1,
+            "startColumnIndex": 1,
+            "endColumnIndex": 2
+        })
+        copy_paste_cells(sheet, source={
+            "sheetId": 0,
+            "startRowIndex": 6,
+            "endRowIndex": 7,
+            "startColumnIndex": 0,
+            "endColumnIndex": 1
+        },
+            destination={
+            "sheetId": 812605565,
+            "startRowIndex": int(values[1][0]) + 1,
+            "endRowIndex": int(values[2][0]) + 1,
+            "startColumnIndex": 1,
+            "endColumnIndex": 2
+        })
+        copy_paste_cells(sheet, source={
+            "sheetId": 0,
+            "startRowIndex": 7,
+            "endRowIndex": 8,
+            "startColumnIndex": 0,
+            "endColumnIndex": 1
+        },
+            destination={
+            "sheetId": 812605565,
+            "startRowIndex": int(values[2][0]) + 1,
+            "endRowIndex": int(values[3][0]) + 1,
+            "startColumnIndex": 1,
+            "endColumnIndex": 2
+        })
+        copy_paste_cells(sheet, source={
+            "sheetId": 0,
+            "startRowIndex": 8,
+            "endRowIndex": 9,
+            "startColumnIndex": 0,
+            "endColumnIndex": 1
+        },
+            destination={
+            "sheetId": 812605565,
+            "startRowIndex": int(values[2][0]) + 1,
+            "endRowIndex": int(values[4][0]) + 1,
+            "startColumnIndex": 1,
+            "endColumnIndex": 2
+        })
+
+        add_borders(sheet, rows=no_of_rows)
 
     except HttpError as err:
         print(err)
